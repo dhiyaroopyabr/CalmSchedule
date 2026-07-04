@@ -131,4 +131,4 @@ graph TD
 ### Cover Page Banner
 ![Cover Page Banner](assets/cover_page_banner.png)
 
-## Happy Scheduling ! 😊
+# Happy Scheduling ! 😊
