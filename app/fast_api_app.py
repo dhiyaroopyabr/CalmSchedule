@@ -36,12 +36,34 @@ from app.app_utils.telemetry import (
 from app.app_utils.typing import Feedback
 
 load_dotenv()
+if "GOOGLE_API_KEY" in os.environ and "GEMINI_API_KEY" not in os.environ:
+    os.environ["GEMINI_API_KEY"] = os.environ["GOOGLE_API_KEY"]
 setup_telemetry()
 # Must run before get_fast_api_app to set the tracer provider resource.
 setup_agent_engine_telemetry()
-_, project_id = google.auth.default()
-logging_client = google_cloud_logging.Client()
-logger = logging_client.logger(__name__)
+if os.environ.get("INTEGRATION_TEST") == "TRUE" or not os.environ.get("GOOGLE_CLOUD_PROJECT"):
+    os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
+    os.environ["GOOGLE_GENAI_USE_ENTERPRISE"] = "False"
+
+try:
+    _, project_id = google.auth.default()
+    logging_client = google_cloud_logging.Client()
+    logger = logging_client.logger(__name__)
+except Exception:
+    import logging as standard_logging
+    standard_logger = standard_logging.getLogger(__name__)
+
+    class FallbackLogger:
+        def log_struct(self, info: dict, severity: str = "INFO") -> None:
+            lvl = standard_logging.INFO
+            if severity == "WARNING":
+                lvl = standard_logging.WARNING
+            elif severity in ("ERROR", "CRITICAL"):
+                lvl = standard_logging.ERROR
+            standard_logger.log(lvl, f"[{severity}] {info}")
+
+    logger = FallbackLogger()
+
 allow_origins = (
     os.getenv("ALLOW_ORIGINS", "").split(",") if os.getenv("ALLOW_ORIGINS") else None
 )

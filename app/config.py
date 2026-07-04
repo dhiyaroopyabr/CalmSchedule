@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 
 load_dotenv()
+if "GOOGLE_API_KEY" in os.environ and "GEMINI_API_KEY" not in os.environ:
+    os.environ["GEMINI_API_KEY"] = os.environ["GOOGLE_API_KEY"]
 os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "False")  # Gemini API key only
 
 @dataclass

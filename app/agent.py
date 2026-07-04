@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any
 import datetime
 import re
 import os
@@ -109,9 +110,20 @@ When a request comes in:
 1. Delegate scheduling queries to the scheduler_agent.
 2. Delegate routine/habit/break optimization queries to the routine_optimizer.
 Combine their insights to formulate a response.
-If you propose adding/updating calendar events or routine changes, set needs_approval to True and describe the proposed_update.
-Otherwise, set needs_approval to False.""",
+If you propose adding/updating calendar events or routine changes, clearly state what updates you propose.
+Otherwise, specify that no updates or modifications are needed.""",
     tools=[AgentTool(scheduler_agent), AgentTool(routine_optimizer)],
+)
+
+response_formatter = LlmAgent(
+    name="response_formatter",
+    model=config.model,
+    instruction="""You are a response formatting specialist for CalmSchedule.
+Your job is to structure the coordinator's final output into the required JSON schema format.
+Based on the text input:
+- Extract the main response text into the 'response' field.
+- Determine if any calendar additions/updates or routine modifications are proposed. If so, set 'needs_approval' to True and write the details in 'proposed_update'.
+- Otherwise, set 'needs_approval' to False and 'proposed_update' to an empty string.""",
     output_schema=OrchestratorOutput,
     output_key="orchestrator_output",
 )
@@ -245,7 +257,7 @@ def route_after_orchestration(ctx: Context, node_input: dict) -> Event:
         return Event(output=node_input, route="needs_approval")
     return Event(output=node_input)
 
-async def human_approval_node(ctx: Context, node_input: dict):
+async def human_approval_node(ctx: Context, node_input: Any):
     """Asks for human approval using RequestInput."""
     if not ctx.resume_inputs:
         proposed = ctx.state.get("proposed_update", "schedule update")
@@ -294,7 +306,8 @@ root_agent = Workflow(
     edges=[
         (START, security_checkpoint),
         (security_checkpoint, {"security_incident": security_event, "__DEFAULT__": orchestrator_agent}),
-        (orchestrator_agent, route_after_orchestration),
+        (orchestrator_agent, response_formatter),
+        (response_formatter, route_after_orchestration),
         (route_after_orchestration, {"needs_approval": human_approval_node, "__DEFAULT__": final_output}),
         (human_approval_node, final_output),
         (security_event, final_output)

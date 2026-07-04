@@ -24,6 +24,7 @@ packaged Agent Engine.
 
 import inspect
 import json
+import os
 
 from fastapi import FastAPI, HTTPException, Request, encoders, responses
 from vertexai.agent_engines.templates.adk import AdkApp
@@ -41,6 +42,18 @@ def attach_reasoning_engine_routes(app: FastAPI) -> None:
         nonlocal runtime, streaming_methods, sync_methods
         if runtime is None:
             from app.agent import app as adk_app
+            import vertexai
+            from google.cloud.aiplatform import initializer
+            from google.auth.credentials import AnonymousCredentials
+            try:
+                # Check if project is set; if not, initialize with dummy value to prevent auth check crash
+                if not initializer.global_config.project:
+                    vertexai.init(project="dummy-project", location="global")
+            except Exception:
+                vertexai.init(project="dummy-project", location="global")
+
+            if not initializer.global_config._credentials:
+                initializer.global_config._credentials = AnonymousCredentials()
 
             # Reuse the process-wide services so sessions created here are
             # visible to the adk_api and A2A paths, and vice versa (see services.py).
@@ -50,6 +63,9 @@ def attach_reasoning_engine_routes(app: FastAPI) -> None:
                 artifact_service_builder=services.get_artifact_service,
             )
             runtime.set_up()
+            if os.environ.get("INTEGRATION_TEST") == "TRUE" or not os.environ.get("GOOGLE_CLOUD_PROJECT") or os.environ.get("GOOGLE_CLOUD_PROJECT") == "dummy-project":
+                os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "False"
+                os.environ["GOOGLE_GENAI_USE_ENTERPRISE"] = "False"
             operations = runtime.register_operations()
             streaming_methods = set(operations.get("stream", [])) | set(
                 operations.get("async_stream", [])
