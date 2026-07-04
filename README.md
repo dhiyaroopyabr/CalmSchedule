@@ -131,39 +131,4 @@ graph TD
 ### Cover Page Banner
 ![Cover Page Banner](assets/cover_page_banner.png)
 
----
-
-## 📜 Demo Script
-
-A conversational walkthrough narration script is available at [DEMO_SCRIPT.txt](DEMO_SCRIPT.txt) for presentation purposes.
-
----
-
-## Push to GitHub
-
-1. Create a new repo at https://github.com/new
-   - Name: calm-schedule
-   - Visibility: Public or Private
-   - Do NOT initialize with README (you already have one)
-
-2. In your terminal, navigate into your project folder:
-   ```bash
-   cd calm-schedule
-   git init
-   git add .
-   git commit -m "Initial commit: calm-schedule ADK agent"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/calm-schedule.git
-   git push -u origin main
-   ```
-
-3. Verify .gitignore includes:
-   ```
-   .env          ← your API key — must NEVER be pushed
-   .venv/
-   __pycache__/
-   *.pyc
-   .adk/
-   ```
-
-⚠ NEVER push `.env` to GitHub. Your API key will be exposed publicly.
+# 😊 Happy Scheduling ! 😉
