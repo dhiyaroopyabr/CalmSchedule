@@ -1,0 +1,39 @@
+[0:00 — HOOK]
+Hello everyone. Today, I'm excited to present CalmSchedule. If you've ever ended a workday feeling completely drained by back-to-back virtual meetings, neglecting breaks, and struggling to find focus blocks, then CalmSchedule was built specifically for you.
+
+[0:20 — WHAT IT IS]
+CalmSchedule is a smart, context-aware productivity concierge. It acts as an ambient assistant that analyzes your daily routines, dynamically suggests mindful recovery breaks, and coordinates calendar slots—all while keeping your data private and requiring your explicit approval before committing any changes.
+
+[0:40 — SHOW THE BANNER]
+(show assets/cover_page_banner.png)
+As you can see on the banner, CalmSchedule combines automated scheduling and routine optimization under a secure, intelligent, and human-in-the-loop framework.
+
+[1:00 — ARCHITECTURE]
+(show assets/architecture_diagram.png)
+Let's walk through the architecture behind the scenes.
+(pause)
+First, every query you type enters through our Security Checkpoint node, which scrubs sensitive PII like credit cards or emails, and blocks prompt injection attacks.
+If the request is safe, it routes to our Orchestrator Agent.
+The Orchestrator coordinates the query and delegates tasks using AgentTool calls to our two specialist sub-agents.
+The first is the Scheduler Agent, which checks for calendar conflicts and schedules events.
+The second is the Routine Optimizer Agent, which recommends break intervals and healthy routine habits.
+Both sub-agents execute their capabilities by calling local tools served by our Model Context Protocol, or MCP server.
+Finally, if a schedule update is proposed, the workflow pauses at the Human Approval node using a RequestInput interrupt, asking you for permission before outputting the final result.
+
+[2:00 — LIVE DEMO]
+(switch to playground at localhost:18081)
+Now, let's look at the live assistant in action.
+(pause)
+First, let's query today's schedule. I'll type: "What does my schedule look like today?"
+The request goes through the security checkpoint, flows to the Orchestrator, which asks the Scheduler Agent to pull the events. The Scheduler calls the get_calendar_events MCP tool and returns our list of meetings—including Team Sync and Project Planning.
+Next, let's schedule a new event that requires approval. I'll enter: "Schedule a focus block today from 13:00 to 14:00."
+Since this alters the calendar database, the Orchestrator marks this request as needing review. The workflow halts at our human-in-the-loop node, and pops up an interactive card asking: "Do you approve this change?" If I type "yes", the event is securely added to the database.
+Finally, let's check our routine suggestions by typing: "Optimize my routine. I've been working for 100 minutes without stopping."
+The Orchestrator routes this to the Routine Optimizer, which calls the suggest_mindful_breaks tool and advises me to take a 15-minute screen-free deep refresh.
+
+[3:00 — SECURITY & MCP]
+(show assets/architecture_diagram.png again)
+Our security design ensures that PII is scrubbed before processing, structured JSON audit logs are printed to stderr for visibility, and off-hours scheduling or confidential topics are flagged for review. The MCP server integrates these rules locally using standard input/output transport, keeping execution fast, safe, and private.
+
+[3:30 — IMPACT / CLOSE]
+CalmSchedule transforms calendars from overwhelming lists of tasks into healthy, optimized routines. It helps professionals protect focus time and recover during busy days. Thank you.
